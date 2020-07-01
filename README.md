@@ -35,6 +35,13 @@ All existing clusters are compared and joined based on the cluster with the high
 3) Need to create a `cluster` object suitable for a "union-find" structure/algorithm.
 
 4) data types:
+
     4.a) univariate gaussian
+    
     4.b) multivariate gaussian
+    
     4.c) dirchlet-multinomial
+
+5) Pytest
+
+6) Conda environment yml
