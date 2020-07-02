@@ -11,3 +11,6 @@ Once the environment is built it should be used whenever developing new features
 ```
 conda activate bhc
 ```
+
+
+## Dependencies
