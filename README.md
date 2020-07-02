@@ -43,5 +43,3 @@ All existing clusters are compared and joined based on the cluster with the high
     4.c) dirchlet-multinomial
 
 5) Pytest
-
-6) Conda environment yml
