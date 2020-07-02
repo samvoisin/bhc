@@ -45,3 +45,5 @@ All existing clusters are compared and joined based on the cluster with the high
 5) Pytest
 
 6) https://www.python.org/dev/peps/pep-0008/
+
+7) Use sphinx for documentation: https://www.sphinx-doc.org/en/master/
