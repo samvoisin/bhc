@@ -1,0 +1,21 @@
+name: bhc
+channels:
+    - conda-forge
+dependencies:
+    - Cython
+    - jupyterlab
+    - numba
+    - numpy
+    - numpydoc
+    - pandas
+    - pip
+    - pytest
+    - python=3.7
+    - scipy
+    - sphinx
+    - scikit-learn
+    - pip:
+        - ipython
+        - jupyter
+        - matplotlib
+        - seaborn
