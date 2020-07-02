@@ -43,3 +43,5 @@ All existing clusters are compared and joined based on the cluster with the high
     4.c) dirchlet-multinomial
 
 5) Pytest
+
+6) https://www.python.org/dev/peps/pep-0008/
