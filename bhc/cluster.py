@@ -34,9 +34,12 @@ class Cluster:
         :param label: a unique integer identifier for the cluster.
         """
         self.points = [x]  # Cluster object initialized with a single data point
-        self.label = label
+        self.label = label  # cluster label
+        self.parent = None  # parent node of cluster
         self.alpha = alpha
         self.merge_prior = 1  # prior probability of merging clusters
         # d parameter controls merge hypothesis prior using information in subtrees; it represents the observation that
         # subtrees which were not merged on previous iterations may not share a distribution
         self.d = alpha
+        # posterior merge probability; updates value to the posterior merge probability when it becomes a child node
+        self.pmp = 1

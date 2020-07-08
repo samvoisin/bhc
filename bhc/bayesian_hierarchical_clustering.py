@@ -11,6 +11,33 @@ import numpy as np
 from cluster import Cluster
 
 
+def _find(clusteri: Cluster):
+    """
+    find parent node of cluster i
+
+    :param clusteri: a Cluster object
+
+    :return: label of cluster i parent node (type int)
+    """
+    while clusteri.label != clusteri.parent.label:
+        clusteri = clusteri.parent
+    return clusteri.label
+
+
+def _union(self, clusteri: Cluster, clusterj: Cluster):
+    """
+    Joint the pair of clusters with highest posterior merge probability
+
+    :param clusteri: parent node Cluster object to be merged with clusterj (child)
+    :param clusterj: child node Cluster object to be merged with clusteri (parent)
+    """
+    clusterj.parent = clusteri
+
+
+
+
+
+
 class BHC:
     """
     This is the primary object for user interface in the bhc library.
@@ -34,23 +61,6 @@ class BHC:
         self.posterior_table = np.zeros(shape=(self.n_data, self.n_dims))
         self.uf_array = np.arange(self.n_data)  # union-find tracking array
         self.clusters = {n: Cluster(c, self.alpha, n) for n, c in enumerate(data)}  # init points as individual clusters
-
-    def _find(self):
-        """
-        Find the pair of clusters with the highest posterior merge probability
-        """
-        max_coords = np.where(self.posterior_table == self.posterior_table.max())
-        clusti, clustj = self.uf_array[max_coords]  # get cluster labels; this does not return Cluster objects
-        return clusti, clustj
-
-    def _union(self, i: int, j: int):
-        """
-        Joint the pair of clusters with highest posterior merge probability
-
-        :param i: integer label for cluster i
-        :param j: integer label for cluster j
-        """
-        pass
 
 
 if __name__ == "__main__":
