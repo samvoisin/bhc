@@ -19,19 +19,28 @@ def _find(clusteri: Cluster):
 
     :return: label of cluster i parent node (type int)
     """
-    while clusteri.label != clusteri.parent.label:
+    while clusteri is not clusteri.parent:
         clusteri = clusteri.parent
-    return clusteri.label
+    return clusteri.parent
 
 
 def _union(self, clusteri: Cluster, clusterj: Cluster):
     """
     Joint the pair of clusters with highest posterior merge probability
 
-    :param clusteri: parent node Cluster object to be merged with clusterj (child)
-    :param clusterj: child node Cluster object to be merged with clusteri (parent)
+    :param clusteri: Cluster object to be merged with clusterj
+    :param clusterj: Cluster object to be merged with clusteri
     """
-    clusterj.parent = clusteri
+    if clusteri.rank >= clusterj.rank:
+        parent = clusteri
+        child = clusterj
+    else:
+        parent = clusterj
+        child = clusteri
+    child.parent = _find(parent)
+    # increase rank of top node
+    _find(parent).rank += 1
+
 
 
 

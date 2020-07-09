@@ -35,7 +35,8 @@ class Cluster:
         """
         self.points = [x]  # Cluster object initialized with a single data point
         self.label = label  # cluster label
-        self.parent = None  # parent node of cluster
+        self.parent = self  # parent node of cluster initialized as self
+        self.rank = 1  # tier of cluster tree
         self.alpha = alpha
         self.merge_prior = 1  # prior probability of merging clusters
         # d parameter controls merge hypothesis prior using information in subtrees; it represents the observation that
@@ -43,3 +44,11 @@ class Cluster:
         self.d = alpha
         # posterior merge probability; updates value to the posterior merge probability when it becomes a child node
         self.pmp = 1
+
+    def pull_vectors_up(self):
+        """
+        pull data vectors from children for use in posterior calculations
+
+        :return:
+        """
+        pass
