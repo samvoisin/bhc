@@ -33,9 +33,9 @@ class Cluster:
         :param alpha: cluster concentration parameter. This should be common to all clusters at initialization.
         :param label: a unique integer identifier for the cluster.
         """
-        self.points = [x]  # Cluster object initialized with a single data point
         self.label = label  # cluster label
         self.parent = self.label  # parent node of cluster initialized as self
+        self.points = {self.label: x}  # Cluster object initialized with a single data point
         self.rank = 1  # tier of hierarchy tree
         self.alpha = alpha
         self.merge_prior = 1  # prior probability of merging clusters
