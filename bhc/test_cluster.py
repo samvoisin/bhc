@@ -7,28 +7,29 @@ test_cluster.py
 test methods for Cluster class
 """
 
+
 import pytest
 import numpy as np
-from cluster import Cluster
+from bhc.cluster import Cluster
 
 
 class TestCluster:
+    """
+    Class of tests for Cluster
+    """
 
-    def __init__(self):
+    def setup(self):
         """
         initialize data needed to perform testing
         """
-        self.x = np.linspace(0, 100, 20)
-        self.labels = [i for i in range(5)]
+        x = np.linspace(0, 100, 20)
         self.alpha = 1
-        self.clusters = [Cluster(i, self.alpha, self.labels[n]) for n, i in enumerate(self.x)]
+        self.clusters = [Cluster(x=i, alpha=self.alpha, label=n) for n, i in enumerate(x)]
 
-    @pytest.mark.xfail()
-    def test_initialization(self):
+    def test_cluster_init(self):
         """
-        test initial conditions
+        test cluster instantiation
 
         :return:
         """
-        pass
-
+        assert np.array([c.alpha for c in self.clusters]).sum() == self.alpha * len(self.clusters)

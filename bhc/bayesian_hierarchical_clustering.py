@@ -42,19 +42,14 @@ def _union(self, clusteri: Cluster, clusterj: Cluster):
     _find(parent).rank += 1
 
 
-
-
-
-
-
 class BHC:
     """
     This is the primary object for user interface in the bhc library.
     """
 
-    def __init__(self, data: np.ndarray, alpha: float, prior_params: dict, family="normal_in_gamma"):
+    def __init__(self, data: np.ndarray, alpha: float, prior_params: dict, family="normal_inv_gamma"):
         """
-        Initialize the bhc object with the data set and hyper-parameters.
+        initialize the bhc object with the data set and hyper-parameters.
 
         :param data: an `n` by `d` array of data to be clustered where n is number of data points and d is dimension
         :param alpha: cluster concentration hyper-parameter
@@ -67,9 +62,17 @@ class BHC:
         self.prior_params = prior_params
         self.family = family
         # n by n table for storing posterior merge probabilities
-        self.posterior_table = np.zeros(shape=(self.n_data, self.n_dims))
-        self.uf_array = np.arange(self.n_data)  # union-find tracking array
+        self.pmp_table = np.zeros(shape=(self.n_data, self.n_data)) + np.eye(self.n_data)
         self.clusters = {n: Cluster(c, self.alpha, n) for n, c in enumerate(data)}  # init points as individual clusters
+
+    def fit(self):
+        """
+        Build hierarchy tree without pruning
+
+        :return:
+        """
+        # calculate first round of pairwise posterior merge probabilities
+        pass
 
 
 if __name__ == "__main__":

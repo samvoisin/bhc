@@ -12,7 +12,7 @@ import numpy as np
 
 def _calc_merge_posterior(clusti, clustj):
     """
-    calculate the posterior probability of merging with another cluster
+    Calculate the posterior probability of merging with another cluster
 
     :param clusti: Cluster class instance
     :param clustj: Cluster class instance
@@ -27,7 +27,7 @@ class Cluster:
 
     def __init__(self, x: float or np.ndarray, alpha: float, label: int):
         """
-        initialize cluster for a single data point. On initialization each cluster is a singleton set (i.e. a leaf).
+        Initialize cluster for a single data point. On initialization each cluster is a singleton set (i.e. a leaf).
 
         :param x: a single data vector. This may be a float value or an array of floats.
         :param alpha: cluster concentration parameter. This should be common to all clusters at initialization.
@@ -35,8 +35,8 @@ class Cluster:
         """
         self.points = [x]  # Cluster object initialized with a single data point
         self.label = label  # cluster label
-        self.parent = self  # parent node of cluster initialized as self
-        self.rank = 1  # tier of cluster tree
+        self.parent = self.label  # parent node of cluster initialized as self
+        self.rank = 1  # tier of hierarchy tree
         self.alpha = alpha
         self.merge_prior = 1  # prior probability of merging clusters
         # d parameter controls merge hypothesis prior using information in subtrees; it represents the observation that
@@ -47,8 +47,12 @@ class Cluster:
 
     def pull_vectors_up(self):
         """
-        pull data vectors from children for use in posterior calculations
+        Pull data vectors from child nodes for use in posterior calculations
 
         :return:
         """
         pass
+
+
+if __name__ == "__main__":
+    pass
