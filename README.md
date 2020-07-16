@@ -26,6 +26,18 @@ All existing clusters are compared and joined based on the cluster with the high
 
 ---
 
+## Using bhc
+
+#### The normal-inverse gamma family 
+
+family="normal_inv_gamma" takes kwargs `{}`
+
+https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.invgamma.html#scipy.stats.invgamma
+
+https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.norm.html#scipy.stats.norm
+
+---
+
 ## Development Plan
 
 1) OOP
