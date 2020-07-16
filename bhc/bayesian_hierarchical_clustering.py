@@ -50,7 +50,7 @@ class BHC:
     This is the primary object for user interface in the bhc library.
     """
 
-    def __init__(self, data: np.ndarray, alpha: float, prior_params: dict, family="normal_inv_gamma"):
+    def __init__(self, data: np.ndarray, alpha: float, prior_params: dict, git ):
         """
         initialize the bhc object with the data set and hyper-parameters.
 
