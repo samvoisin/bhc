@@ -23,6 +23,7 @@ class TestBHC:
         """
         pass
 
+    @pytest.xfail()
     def test_bhc_init(self):
         """
         test cluster instantiation
