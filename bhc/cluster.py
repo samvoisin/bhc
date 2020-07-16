@@ -34,7 +34,7 @@ class Cluster:
         :param label: a unique integer identifier for the cluster.
         """
         self.label = label  # cluster label
-        self.parent = self.label  # parent node of cluster initialized as self
+        self.parent = self  # parent node of cluster initialized as self
         self.points = {self.label: x}  # Cluster object initialized with a single data point
         self.rank = 1  # tier of hierarchy tree
         self.alpha = alpha

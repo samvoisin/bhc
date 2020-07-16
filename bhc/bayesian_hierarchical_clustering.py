@@ -24,7 +24,7 @@ def _find(clusteri: Cluster):
     return clusteri.parent
 
 
-def _union(self, clusteri: Cluster, clusterj: Cluster):
+def _union(clusteri: Cluster, clusterj: Cluster):
     """
     Joint the pair of clusters with highest posterior merge probability
 
@@ -40,6 +40,9 @@ def _union(self, clusteri: Cluster, clusterj: Cluster):
     child.parent = _find(parent)
     # increase rank of top node
     _find(parent).rank += 1
+    # pass data vectors to parent cluster
+    for k, v in child.points.items():
+        parent.points[k] = v
 
 
 class BHC:
@@ -62,7 +65,9 @@ class BHC:
         self.prior_params = prior_params
         self.family = family
         # n by n table for storing posterior merge probabilities
-        self.pmp_table = np.zeros(shape=(self.n_data, self.n_data)) + np.eye(self.n_data)
+        self.pmp_table = np.zeros(shape=(self.n_data, self.n_data))
+        # n by n adjacency matrix for graph representation of tree/clusters
+        self.adj_mat = np.zeros(shape=(self.n_data, self.n_data)) + np.eye(self.n_data)
         self.clusters = {n: Cluster(c, self.alpha, n) for n, c in enumerate(data)}  # init points as individual clusters
 
     def fit(self):
@@ -81,3 +86,13 @@ if __name__ == "__main__":
     for k, v in tree.clusters.items():
         print(f"points: {v.points}")
         print(f"labels: {v.label}")
+
+    c1 = tree.clusters.pop(0)
+
+    for k, v in tree.clusters.items():
+        print(k)
+        print(v.parent)
+        _union(c1, v)
+
+    print(c1.points)
+    print(tree.clusters[5].parent.label)
