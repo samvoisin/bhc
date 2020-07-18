@@ -28,9 +28,18 @@ All existing clusters are compared and joined based on the cluster with the high
 
 ## Using bhc
 
+The distribution families in `bhc` take the same key-word arguments as those found in `scipy.stats` for ease of use.
+
 #### The normal-inverse gamma family 
 
-family="normal_inv_gamma" takes kwargs `{}`
+family="normal_inv_gamma" takes the following kwargs for `params`:
+
+```
+{
+    "norm":{"loc": [mean], "scale": [st_dev]},
+    "invgamma":{"a": [shape], "scale": [scale]}
+}
+```
 
 https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.invgamma.html#scipy.stats.invgamma
 

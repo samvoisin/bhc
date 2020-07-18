@@ -8,7 +8,7 @@ Class `BHC`. This is the primary object for user interface in the bhc library.
 """
 
 import numpy as np
-from cluster import Cluster
+from bhc.cluster import Cluster
 
 
 def _find(clusteri: Cluster):
@@ -50,7 +50,7 @@ class BHC:
     This is the primary object for user interface in the bhc library.
     """
 
-    def __init__(self, data: np.ndarray, alpha: float, prior_params: dict):
+    def __init__(self, data: np.ndarray, alpha: float, params: dict):
         """
         initialize the bhc object with the data set and hyper-parameters.
 
@@ -62,7 +62,7 @@ class BHC:
         self.data = data
         self.n_data, self.n_dims = data.shape
         self.alpha = alpha
-        self.prior_params = prior_params
+        self.params = params
         # n by n table for storing posterior merge probabilities
         self.pmp_table = np.zeros(shape=(self.n_data, self.n_data))
         # n by n adjacency matrix for graph representation of tree/clusters
