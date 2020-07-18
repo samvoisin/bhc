@@ -63,7 +63,6 @@ class BHC:
         self.n_data, self.n_dims = data.shape
         self.alpha = alpha
         self.prior_params = prior_params
-        self.family = family
         # n by n table for storing posterior merge probabilities
         self.pmp_table = np.zeros(shape=(self.n_data, self.n_data))
         # n by n adjacency matrix for graph representation of tree/clusters
