@@ -10,6 +10,9 @@ Class `BHC`. This is the primary object for user interface in the bhc library.
 import numpy as np
 from bhc.cluster import Cluster
 
+import scipy.linalg as la
+from scipy.special import gamma
+
 
 def _find(clusteri: Cluster):
     """
@@ -41,8 +44,51 @@ def _union(clusteri: Cluster, clusterj: Cluster):
     # increase rank of top node
     _find(parent).rank += 1
     # pass data vectors to parent cluster
-    for k, v in child.points.items():
-        parent.points[k] = v
+    parent.points = np.r_[parent.points, child.points]
+
+
+def _get_mrgnl_likelihood(dvecs, params: dict):
+    """
+    calculate marginal likelihood for the Normal-Inverse Wishart family of distributions
+
+    :param dvecs: data vectors; a numpy array
+    :param params: dictionary of prior parameters
+    """
+    N, k = dvecs.shape
+    dvecsum = dvecs.sum(axis=0).reshape(1, 2)
+    muvec = params["multivariate_normal"]["mean"].reshape(1, 2)
+    # calculate Sprime
+    Sprime = (
+            params["invwishart"]["scale"] + dvecs.T @ dvecs +
+            params["invwishart"]["r"] * N / (N + params["invwishart"]["r"]) * muvec.T @ muvec +
+            1 / (N + params["invwishart"]["r"]) * dvecsum.T @ dvecsum -
+            params["invwishart"]["r"] / (N + params["invwishart"]["r"]) *
+            (muvec @ dvecsum.T + dvecsum @ muvec.T)
+    )
+    # calculate nu prime
+    nuprime = params["invwishart"]["df"] + N
+    # calculate gamma function values for marginal likelihood
+    gnumer = np.array([gamma((nuprime + 1 - d) / 2) for d in range(1, k + 1)]).prod()
+    gdenom = np.array([gamma((params["invwishart"]["df"] + 1 - d) / 2) for d in range(1, k + 1)]).prod()
+    # calculate marginal likelihood
+    mrgnl_likhd = (
+            (2 * np.pi) ** (-N * k / 2) * (params["invwishart"]["r"] / (N + params["invwishart"]["r"])) ** (k / 2) *
+            la.det(params["invwishart"]["scale"]) ** (params["invwishart"]["df"] / 2) *
+            la.det(Sprime) ** (-nuprime / 2) *
+            2 ** (N * k / 2) * (gnumer - gdenom)
+    )
+    return mrgnl_likhd
+
+def _get_posterior_merge_prob(clusti: Cluster, clustj: Cluster, params: dict):
+    dvecs = np.r_[clusti.points, clustj.points]
+    mrgnl_likhd = _get_mrgnl_likelihood(dvecs, params)  # marginal likelihood
+    nk, d = dvecs.shape
+    dk = clusti.alpha * gamma(nk) + clusti.d * clustj.d
+    pik = clusti.alpha * gamma(nk) / dk  # merge hypothesis prior
+    treek_prob = pik * mrgnl_likhd + (1 - pik) * clusti.pmp * clustj.pmp  # tree distribution; bayes rule denominator
+    return pik * mrgnl_likhd / treek_prob
+
+
 
 
 class BHC:
@@ -56,18 +102,20 @@ class BHC:
 
         :param data: an `n` by `d` array of data to be clustered where n is number of data points and d is dimension
         :param alpha: cluster concentration hyper-parameter
-        :param prior_params: a dictionary of hyper-parameters for prior distributions
-        :param family: distribution family to be used; this must match the prior parameter dictionary provided
+        :param params: a dictionary of hyper-parameters for prior distributions
         """
         self.data = data
-        self.n_data, self.n_dims = data.shape
+        self.n_data = data.shape[0]
         self.alpha = alpha
         self.params = params
         # n by n table for storing posterior merge probabilities
         self.pmp_table = np.zeros(shape=(self.n_data, self.n_data))
         # n by n adjacency matrix for graph representation of tree/clusters
         self.adj_mat = np.zeros(shape=(self.n_data, self.n_data)) + np.eye(self.n_data)
-        self.clusters = {n: Cluster(c, self.alpha, n) for n, c in enumerate(data)}  # init points as individual clusters
+        self.clusters = {n: Cluster(c.reshape(1, -1), self.alpha, n) for n, c in enumerate(data)}
+        # check clusters initialized with data as numpy arrays
+        for v in self.clusters.values():
+            assert type(v.points) == np.ndarray, "Data must be numpy array type"
 
     def fit(self):
         """
@@ -76,7 +124,10 @@ class BHC:
         :return:
         """
         # calculate first round of pairwise posterior merge probabilities
-        pass
+        for i in self.clusters.keys():
+            for j in self.clusters.keys():
+                if i < j:
+                    self.pmp_table[i, j] = _get_posterior_merge_prob(self.clusters[i], self.clusters[j], self.params)
 
 
 if __name__ == "__main__":

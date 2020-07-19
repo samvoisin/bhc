@@ -35,7 +35,7 @@ class Cluster:
         """
         self.label = label  # cluster label
         self.parent = self  # parent node of cluster initialized as self
-        self.points = {self.label: x}  # Cluster object initialized with a single data point
+        self.points = x  # Cluster object initialized with a single data point
         self.rank = 1  # tier of hierarchy tree
         self.alpha = alpha
         self.merge_prior = 1  # prior probability of merging clusters
