@@ -45,14 +45,6 @@ class Cluster:
         # posterior merge probability; updates value to the posterior merge probability when it becomes a child node
         self.pmp = 1
 
-    def pull_vectors_up(self):
-        """
-        Pull data vectors from child nodes for use in posterior calculations
-
-        :return:
-        """
-        pass
-
 
 if __name__ == "__main__":
     pass

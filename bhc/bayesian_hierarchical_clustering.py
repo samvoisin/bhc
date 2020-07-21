@@ -47,6 +47,20 @@ def _union(clusteri: Cluster, clusterj: Cluster):
     parent.points = np.r_[parent.points, child.points]
 
 
+def _get_table_coordinates(table: np.ndarray, fcn: callable):
+    """
+    get coordinates from of max value from `pmp_table`; these should correspond to cluster labels
+
+    :param table: either `pmp_table` or `adj_mat`
+    :param fcn: a function returning a scalar value from `table` (e.g. max or min)
+    :return: tuple of integers
+    """
+    i, j = np.where(table == fcn(table))
+    i = i[0]
+    j = j[0]
+    return i, j
+
+
 def _get_mrgnl_likelihood(dvecs, params: dict):
     """
     calculate marginal likelihood for the Normal-Inverse Wishart family of distributions
@@ -79,6 +93,7 @@ def _get_mrgnl_likelihood(dvecs, params: dict):
     )
     return mrgnl_likhd
 
+
 def _get_posterior_merge_prob(clusti: Cluster, clustj: Cluster, params: dict):
     dvecs = np.r_[clusti.points, clustj.points]
     mrgnl_likhd = _get_mrgnl_likelihood(dvecs, params)  # marginal likelihood
@@ -87,8 +102,6 @@ def _get_posterior_merge_prob(clusti: Cluster, clustj: Cluster, params: dict):
     pik = clusti.alpha * gamma(nk) / dk  # merge hypothesis prior
     treek_prob = pik * mrgnl_likhd + (1 - pik) * clusti.pmp * clustj.pmp  # tree distribution; bayes rule denominator
     return pik * mrgnl_likhd / treek_prob
-
-
 
 
 class BHC:
@@ -128,6 +141,9 @@ class BHC:
             for j in self.clusters.keys():
                 if i < j:
                     self.pmp_table[i, j] = _get_posterior_merge_prob(self.clusters[i], self.clusters[j], self.params)
+        # return coordinates of max posterior merge probability; these should correspond to cluster labels
+        i_label, j_label = _get_table_coordinates(self.pmp_table, np.max)
+        _union(self.clusters[i_label], self.clusters[j_label])  # merge clusters i and j
 
 
 if __name__ == "__main__":
