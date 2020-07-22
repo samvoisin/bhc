@@ -32,7 +32,7 @@ class TestBHC:
     @pytest.xfail()
     def test_bhc_init(self):
         """
-        test cluster instantiation
+        test BHC class instantiation
 
         :return:
         """
