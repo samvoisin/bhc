@@ -109,7 +109,8 @@ def _get_posterior_merge_prob(clusti: Cluster, clustj: Cluster, params: dict):
     nk, d = dvecs.shape
     dk = clusti.alpha * gamma(nk) + clusti.d * clustj.d
     pik = clusti.alpha * gamma(nk) / dk  # merge hypothesis prior
-    treek_prob = pik * mrgnl_likhd + (1 - pik) * clusti.pmp * clustj.pmp  # tree distribution; bayes rule denominator
+    # treek_prob is tree distribution; bayes rule denominator
+    treek_prob = pik * mrgnl_likhd + (1 - pik) * clusti.clust_marg_prob * clustj.clust_marg_prob
     return pik * mrgnl_likhd / treek_prob
 
 
@@ -135,9 +136,22 @@ class BHC:
         # n by n adjacency matrix for directed graph representation of tree; directed edges go from rows to columns
         self.adj_mat = np.zeros(shape=(self.n_data, self.n_data)) + np.eye(self.n_data)
         self.clusters = {n: Cluster(c.reshape(1, -1), self.alpha, n) for n, c in enumerate(data)}
+        self.current_clusters = list(self.clusters.keys())
         # check clusters initialized with data as numpy arrays
         for v in self.clusters.values():
             assert type(v.points) == np.ndarray, "Data must be numpy array"
+
+    def update_tables(self, parent: Cluster, child: Cluster):
+        """
+        update posterior merge probability table and adjacency matrix after child cluster merges into parent
+
+        :param parent: cluster being merged into
+        :param child: cluster being merged into parent
+        """
+        self.adj_mat[child.label, parent.label] = self.pmp_table.max()  # update graph w/ edge from child to parent
+        self.pmp_table[child.label, :] = np.zeros(self.n_data)  # zero all posterior merge probabilities for child
+        self.pmp_table[:, child.label] = np.zeros(self.n_data)  # zero all posterior merge probabilities for child
+        self.current_clusters.remove(child.label)  # remove child label from list of current clusters
 
     def fit(self):
         """
@@ -145,30 +159,55 @@ class BHC:
 
         :return:
         """
-        # calculate first round of pairwise posterior merge probabilities
+        # calculate pairwise posterior merge probability table
         for m in self.clusters.keys():
             for n in self.clusters.keys():
                 if m < n:
                     self.pmp_table[m, n] = _get_posterior_merge_prob(self.clusters[m], self.clusters[n], self.params)
-        # return coordinates of max posterior merge probability; these should correspond to cluster labels
-        i_label, j_label = _get_table_coordinates(self.pmp_table, np.max)
-        parent, child = _union(self.clusters[i_label], self.clusters[j_label])  # merge clusters i and j
-        # update graph with an edge from child node to parent node
-        self.adj_mat[child.label, parent.label] = self.pmp_table.max()
-        # recalculate posterior merge probabilities for new cluster only
-        child_labels = []
-        candidate_pmp = np.zeros(self.n_data)
-        for candidate in self.clusters.values():
-            if candidate.parent is parent:  # if parent already contains candidate cluster, append and move on
-                child_labels.append(candidate.label)
-            else:
-                candidate_pmp[candidate.label] = _get_posterior_merge_prob(parent, candidate, self.params)
-        # update posterior merge probability table
-        for c in child_labels:
-            self.pmp_table[c, :] = candidate_pmp
+        self.pmp_table = self.pmp_table + self.pmp_table.T
+        while len(self.current_clusters) > 1:  # agglomeration loop
+            # return coordinates of max posterior merge probability; these should correspond to cluster labels
+            i_label, j_label = _get_table_coordinates(self.pmp_table, np.max)
+            parent, child = _union(self.clusters[i_label], self.clusters[j_label])  # merge clusters i and j
+            parent.clust_marg_prob = _get_mrgnl_likelihood(parent.points, self.params)  # update tree_k marginal
+            self.update_tables(parent, child)
+            # recalculate posterior merge probabilities for new cluster only
+            candidate_pmp = np.zeros(self.n_data)
+            for candidate_label in self.current_clusters:
+                if candidate_label == parent.label:
+                    continue  # skip this iteration's parent node
+                else:
+                    candidate_pmp[candidate_label] = _get_posterior_merge_prob(parent,
+                                                                               self.clusters[candidate_label],
+                                                                               self.params)
+            self.pmp_table[parent.label, :] = candidate_pmp
+            self.pmp_table[:, parent.label] = candidate_pmp
 
 
 if __name__ == "__main__":
-    x = np.arange(24).reshape(12, 2)
-    tree = BHC(x, 0.1, {"tst": 1})
+    from scipy.stats import multivariate_normal
+    # generate trial data set
+    mu1 = np.array([3, 4])
+    Sigma1 = np.array([0.1, 0, 0, 0.1]).reshape(2, 2)
+
+    mu2 = np.ones(2) * -1
+    Sigma2 = np.array([0.8, 0.3, 0.3, 0.8]).reshape(2, 2)
+
+    mvn1 = multivariate_normal(mean=mu1, cov=Sigma1)
+    mvn2 = multivariate_normal(mean=mu2, cov=Sigma2)
+
+    np.random.seed(100)
+    n1 = 100
+    n2 = 150
+    x1 = mvn1.rvs(n1)
+    x2 = mvn2.rvs(n2)
+    x = np.r_[x1, x2]
+    labs = np.r_[np.zeros(n1), np.ones(n2)]
+
+    params = {
+        "multivariate_normal": {"mean": x.mean(axis=0), "cov": x.std()},
+        "invwishart": {"df": 10, "scale": np.eye(2), "r": 1}  # r is a scaling facor on the prior precision of the mean
+    }
+
+    tree = BHC(data=x, alpha=1, params=params)
     tree.fit()

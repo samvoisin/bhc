@@ -13,14 +13,27 @@ import numpy as np
 from scipy.stats import multivariate_normal
 from bhc.bayesian_hierarchical_clustering import BHC
 
-class TestBHC:
+class TestBHCHelpers:
     """
-    Class of tests for BHC
+    set of tests for bhc helper functions
     """
 
     def setup(self):
         """
-        initialize data needed to perform testing
+        initialize data required to perform testing
+        """
+        pass
+
+
+
+class TestBHC:
+    """
+    set of tests for BHC class
+    """
+
+    def setup(self):
+        """
+        initialize data required to perform testing
         """
         np.random.seed(1)
         self.test_data = multivariate_normal.rvs(mean=np.zeros(3), cov=np.eye(3), size=10)

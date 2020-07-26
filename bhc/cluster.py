@@ -38,12 +38,11 @@ class Cluster:
         self.points = x  # Cluster object initialized with a single data point
         self.rank = 1  # tier of hierarchy tree
         self.alpha = alpha
-        self.merge_prior = 1  # prior probability of merging clusters
+        self.merge_prior = 1.0  # prior probability of merging clusters
         # d parameter controls merge hypothesis prior using information in subtrees; it represents the observation that
         # subtrees which were not merged on previous iterations may not share a distribution
         self.d = alpha
-        # posterior merge probability; updates value to the posterior merge probability when it becomes a child node
-        self.pmp = 1
+        self.clust_marg_prob = 1.0  # marginal probability of this cluster; this is p(Dk|Tk) in original paper
 
 
 if __name__ == "__main__":
