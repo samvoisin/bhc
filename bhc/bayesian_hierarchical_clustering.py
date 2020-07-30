@@ -169,6 +169,7 @@ class BHC:
             # return coordinates of max posterior merge probability; these should correspond to cluster labels
             i_label, j_label = _get_table_coordinates(self.pmp_table, np.max)
             parent, child = _union(self.clusters[i_label], self.clusters[j_label])  # merge clusters i and j
+            parent.update_prior(child)
             parent.clust_marg_prob = _get_mrgnl_likelihood(parent.points, self.params)  # update tree_k marginal
             self.update_tables(parent, child)
             # recalculate posterior merge probabilities for new cluster only

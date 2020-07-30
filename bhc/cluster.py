@@ -8,6 +8,7 @@ Class `Cluster` representing a cluster of data points. This the fundamental comp
 """
 
 import numpy as np
+from scipy.special import gamma
 
 
 def _calc_merge_posterior(clusti, clustj):
@@ -43,6 +44,15 @@ class Cluster:
         # subtrees which were not merged on previous iterations may not share a distribution
         self.d = alpha
         self.clust_marg_prob = 1.0  # marginal probability of this cluster; this is p(Dk|Tk) in original paper
+
+    def update_prior(self, clustj):
+        """
+        update prior merge probability
+
+        :params clustj: Cluster being merged into this Cluster instance
+        """
+        self.d = self.alpha*gamma(self.points.shape[0]) + self.d*clustj.d
+        self.merge_prior = self.alpha*gamma(self.points.shape[0])/self.d
 
 
 if __name__ == "__main__":
