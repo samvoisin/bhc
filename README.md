@@ -30,15 +30,15 @@ All existing clusters are compared and joined based on the cluster with the high
 
 The distribution families in `bhc` take the same key-word arguments as those found in `scipy.stats` for ease of use.
 
-#### The normal-inverse gamma family 
+#### The Multivariate Normal-inverse Wishart family 
 
 family="normal_inv_gamma" takes the following kwargs for `params`:
 
 ```
-{
-    "norm":{"loc": [mean], "scale": [st_dev]},
-    "invgamma":{"a": [shape], "scale": [scale]}
-}
+params = {
+        "multivariate_normal": {"mean": [a vector], "cov": [a matrix]},
+        "invwishart": {"df": [an integer], "scale": [a matrix], "r": [a scalar]}  # r is a scaling factor on the prior precision of the mean
+    }
 ```
 
 https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.invgamma.html#scipy.stats.invgamma
@@ -56,12 +56,10 @@ https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.norm.html#scipy
 3) Need to create a `cluster` object suitable for a "union-find" structure/algorithm.
 
 4) data types:
-
-    4.a) univariate gaussian
     
-    4.b) multivariate gaussian
+    4.a) multivariate gaussian
     
-    4.c) dirchlet-multinomial
+    4.b) dirchlet-multinomial
 
 5) Pytest
 
