@@ -43,16 +43,15 @@ class Cluster:
         # d parameter controls merge hypothesis prior using information in subtrees; it represents the observation that
         # subtrees which were not merged on previous iterations may not share a distribution
         self.d = alpha
-        self.clust_marg_prob = 1.0  # marginal probability of this cluster; this is p(Dk|Tk) in original paper
+        self.clust_marg_prob = 1.0  # marginal probability of data in this cluster; this is p(Dk|Tk) in original paper
 
-    def update_prior(self, clustj):
+    def update_d_param(self, clustj):
         """
-        update prior merge probability
+        update `d` parameter after merging with `clustj`. `d` parameter is used for calculating merge prior
 
         :params clustj: Cluster being merged into this Cluster instance
         """
         self.d = self.alpha*gamma(self.points.shape[0]) + self.d*clustj.d
-        self.merge_prior = self.alpha*gamma(self.points.shape[0])/self.d
 
 
 if __name__ == "__main__":

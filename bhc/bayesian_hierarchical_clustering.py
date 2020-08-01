@@ -95,6 +95,22 @@ def _get_mrgnl_likelihood(dvecs, params: dict):
     return mrgnl_likhd
 
 
+def _get_merge_prior(clusti: Cluster, clustj: Cluster):
+    """
+    calculate prior probability of merging cluster i and cluster j
+
+    :param clusti: one of two candidate clusters
+    :param clustj: one of two candidate clusters
+    :return: scalar float value in interval (0,1)
+    """
+    ni = clusti.points.shape[0]
+    nj = clusti.points.shape[0]
+    nk = ni+nj
+    dk = clusti.alpha * gamma(nk) + clusti.d * clustj.d
+    pik = clusti.alpha * gamma(nk) / dk
+    return pik
+
+
 def _get_posterior_merge_prob(clusti: Cluster, clustj: Cluster, params: dict):
     """
     calculate posterior merge probability for clusters i and j given prior params `params`
@@ -106,9 +122,8 @@ def _get_posterior_merge_prob(clusti: Cluster, clustj: Cluster, params: dict):
     """
     dvecs = np.r_[clusti.points, clustj.points]
     mrgnl_likhd = _get_mrgnl_likelihood(dvecs, params)  # marginal likelihood
-    nk, d = dvecs.shape
-    dk = clusti.alpha * gamma(nk) + clusti.d * clustj.d
-    pik = clusti.alpha * gamma(nk) / dk  # merge hypothesis prior
+    nk, p = dvecs.shape
+    pik = _get_merge_prior(clusti, clustj)  # merge hypothesis prior
     # treek_prob is tree distribution; bayes rule denominator
     treek_prob = pik * mrgnl_likhd + (1 - pik) * clusti.clust_marg_prob * clustj.clust_marg_prob
     return pik * mrgnl_likhd / treek_prob
@@ -156,8 +171,6 @@ class BHC:
     def fit(self):
         """
         Build hierarchy tree without pruning
-
-        :return:
         """
         # calculate pairwise posterior merge probability table
         for m in self.clusters.keys():
@@ -169,8 +182,13 @@ class BHC:
             # return coordinates of max posterior merge probability; these should correspond to cluster labels
             i_label, j_label = _get_table_coordinates(self.pmp_table, np.max)
             parent, child = _union(self.clusters[i_label], self.clusters[j_label])  # merge clusters i and j
-            parent.update_prior(child)
-            parent.clust_marg_prob = _get_mrgnl_likelihood(parent.points, self.params)  # update tree_k marginal
+            parent.update_d_param(child)  # update parent prior merge probability (pik)
+            # update marginal probability of data in treek; this is p(Dk|Tk) in original paper where k is parent node
+            parent.merge_prior = _get_merge_prior(parent, child)
+            parent.clust_marg_prob = (
+                    parent.merge_prior * _get_mrgnl_likelihood(parent.points, self.params) +
+                    (1-parent.merge_prior) * parent.clust_marg_prob * child.clust_marg_prob
+            )
             self.update_tables(parent, child)
             # recalculate posterior merge probabilities for new cluster only
             candidate_pmp = np.zeros(self.n_data)
@@ -207,7 +225,7 @@ if __name__ == "__main__":
 
     params = {
         "multivariate_normal": {"mean": x.mean(axis=0), "cov": x.std()},
-        "invwishart": {"df": 10, "scale": np.eye(2), "r": 1}  # r is a scaling facor on the prior precision of the mean
+        "invwishart": {"df": 10, "scale": np.eye(2), "r": 1}  # r is a scaling factor on the prior precision of the mean
     }
 
     tree = BHC(data=x, alpha=1, params=params)
