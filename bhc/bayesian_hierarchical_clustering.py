@@ -104,9 +104,10 @@ def _get_merge_prior(clusti: Cluster, clustj: Cluster):
     :return: scalar float value in interval (0,1)
     """
     ni = clusti.points.shape[0]
-    nj = clusti.points.shape[0]
+    nj = clustj.points.shape[0]
     nk = ni+nj
-    dk = clusti.alpha * gamma(nk) + clusti.d * clustj.d
+    p1 = gamma(nk)
+    dk = clusti.alpha * p1 + clusti.d * clustj.d
     pik = clusti.alpha * gamma(nk) / dk
     return pik
 
