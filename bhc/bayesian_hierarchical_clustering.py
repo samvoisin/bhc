@@ -105,7 +105,7 @@ def _get_merge_prior(clusti: Cluster, clustj: Cluster):
     """
     ni = clusti.points.shape[0]
     nj = clustj.points.shape[0]
-    nk = ni+nj
+    nk = ni + nj
     dk = clusti.alpha * np.nan_to_num(gamma(nk)) + clusti.d * clustj.d
     pik = np.log(clusti.alpha) * gamma(nk) / dk
     return pik
@@ -168,9 +168,12 @@ class BHC:
         self.pmp_table[:, child.label] = np.zeros(self.n_data)  # zero all posterior merge probabilities for child
         self.current_clusters.remove(child.label)  # remove child label from list of current clusters
 
-    def fit(self):
+    def fit(self, halting_threshold=0.0, verbose=False):
         """
-        Build hierarchy tree without pruning
+        construct hierarchy tree
+
+        :param halting_threshold: fitting will halt if maximum posterior merge probability is below this value
+        :param verbose: verbose output; a boolean
         """
         # calculate pairwise posterior merge probability table
         for m in self.clusters.keys():
@@ -187,7 +190,7 @@ class BHC:
             parent.merge_prior = _get_merge_prior(parent, child)
             parent.clust_marg_prob = (
                     parent.merge_prior * _get_mrgnl_likelihood(parent.points, self.params) +
-                    (1-parent.merge_prior) * parent.clust_marg_prob * child.clust_marg_prob
+                    (1 - parent.merge_prior) * parent.clust_marg_prob * child.clust_marg_prob
             )
             self.update_tables(parent, child)
             # recalculate posterior merge probabilities for new cluster only
@@ -205,6 +208,7 @@ class BHC:
 
 if __name__ == "__main__":
     from scipy.stats import multivariate_normal
+
     # generate trial data set
     mu1 = np.array([3, 4])
     Sigma1 = np.array([0.1, 0, 0, 0.1]).reshape(2, 2)
