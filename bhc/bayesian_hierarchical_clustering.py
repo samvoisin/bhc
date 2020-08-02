@@ -176,13 +176,24 @@ class BHC:
         :param verbose: verbose output; a boolean
         """
         # calculate pairwise posterior merge probability table
+        if verbose:
+            print("calculating initial posterior merge probabilities...")
         for m in self.clusters.keys():
             for n in self.clusters.keys():
                 if m < n:
                     self.pmp_table[m, n] = _get_posterior_merge_prob(self.clusters[m], self.clusters[n], self.params)
         self.pmp_table = self.pmp_table + self.pmp_table.T
+        if verbose:
+            print("all initial posterior merge probabilities calculated")
+            print("clusters merging...")
         while len(self.current_clusters) > 1:  # agglomeration loop
+            if verbose and len(self.current_clusters) % 50 == 0:
+                msg = f"{len(self.current_clusters)} clusters remaining..."
+                print(msg, end="\r")
             # return coordinates of max posterior merge probability; these should correspond to cluster labels
+            if np.max(self.pmp_table) <= halting_threshold:
+                print("halting threshold met. tree fitting stopped.")
+                print(f"clusters remaining: {len(self.current_clusters)}")
             i_label, j_label = _get_table_coordinates(self.pmp_table, np.max)
             parent, child = _union(self.clusters[i_label], self.clusters[j_label])  # merge clusters i and j
             parent.update_d_param(child)  # update parent prior merge probability (pik)
