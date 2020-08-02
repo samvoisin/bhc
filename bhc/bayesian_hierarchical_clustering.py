@@ -106,9 +106,8 @@ def _get_merge_prior(clusti: Cluster, clustj: Cluster):
     ni = clusti.points.shape[0]
     nj = clustj.points.shape[0]
     nk = ni+nj
-    p1 = gamma(nk)
-    dk = clusti.alpha * p1 + clusti.d * clustj.d
-    pik = clusti.alpha * gamma(nk) / dk
+    dk = clusti.alpha * np.nan_to_num(gamma(nk)) + clusti.d * clustj.d
+    pik = np.log(clusti.alpha) * gamma(nk) / dk
     return pik
 
 

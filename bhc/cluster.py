@@ -11,16 +11,6 @@ import numpy as np
 from scipy.special import gamma
 
 
-def _calc_merge_posterior(clusti, clustj):
-    """
-    Calculate the posterior probability of merging with another cluster
-
-    :param clusti: Cluster class instance
-    :param clustj: Cluster class instance
-    """
-    pass
-
-
 class Cluster:
     """
     Object representing a cluster of data points. This the fundamental element of the union-find structure.
@@ -51,7 +41,7 @@ class Cluster:
 
         :params clustj: Cluster being merged into this Cluster instance
         """
-        self.d = self.alpha*gamma(self.points.shape[0]) + self.d*clustj.d
+        self.d = self.alpha * np.nan_to_num(gamma(self.points.shape[0])) + self.d*clustj.d
 
 
 if __name__ == "__main__":
