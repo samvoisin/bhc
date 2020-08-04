@@ -106,8 +106,9 @@ def _get_merge_prior(clusti: Cluster, clustj: Cluster):
     ni = clusti.points.shape[0]
     nj = clustj.points.shape[0]
     nk = ni + nj
-    dk = clusti.alpha * np.nan_to_num(gamma(nk)) + clusti.d * clustj.d
-    pik = np.log(clusti.alpha) * gamma(nk) / dk
+    gnk = np.nan_to_num(gamma(nk))
+    dk = clusti.alpha * gnk + clusti.d * clustj.d
+    pik = clusti.alpha * gnk / dk
     return pik
 
 
@@ -122,11 +123,10 @@ def _get_posterior_merge_prob(clusti: Cluster, clustj: Cluster, params: dict):
     """
     dvecs = np.r_[clusti.points, clustj.points]
     mrgnl_likhd = _get_mrgnl_likelihood(dvecs, params)  # marginal likelihood
-    nk, p = dvecs.shape
     pik = _get_merge_prior(clusti, clustj)  # merge hypothesis prior
     # treek_prob is tree distribution; bayes rule denominator
     treek_prob = pik * mrgnl_likhd + (1 - pik) * clusti.clust_marg_prob * clustj.clust_marg_prob
-    return pik * mrgnl_likhd / treek_prob
+    return np.nan_to_num(pik * mrgnl_likhd / treek_prob)
 
 
 class BHC:
@@ -177,23 +177,26 @@ class BHC:
         """
         # calculate pairwise posterior merge probability table
         if verbose:
-            print("calculating initial posterior merge probabilities...")
+            print("calculating initial posterior merge probabilities...\n")
         for m in self.clusters.keys():
             for n in self.clusters.keys():
                 if m < n:
                     self.pmp_table[m, n] = _get_posterior_merge_prob(self.clusters[m], self.clusters[n], self.params)
         self.pmp_table = self.pmp_table + self.pmp_table.T
         if verbose:
-            print("all initial posterior merge probabilities calculated")
-            print("clusters merging...")
-        while len(self.current_clusters) > 1:  # agglomeration loop
+            print("initial posterior merge probabilities calculated")
+            print("clusters merging...\n")
+        # loop through all clusters performing merges and recalculating new posterior merge probabilities
+        while len(self.current_clusters) > 1:
             if verbose and len(self.current_clusters) % 50 == 0:
                 msg = f"{len(self.current_clusters)} clusters remaining..."
                 print(msg, end="\r")
-            # return coordinates of max posterior merge probability; these should correspond to cluster labels
             if np.max(self.pmp_table) <= halting_threshold:
-                print("halting threshold met. tree fitting stopped.")
-                print(f"clusters remaining: {len(self.current_clusters)}")
+                if verbose:
+                    print("halting threshold met. tree fitting stopped.")
+                    print(f"clusters remaining: {len(self.current_clusters)}")
+                break
+            # return coordinates of max posterior merge probability; these should correspond to cluster labels
             i_label, j_label = _get_table_coordinates(self.pmp_table, np.max)
             parent, child = _union(self.clusters[i_label], self.clusters[j_label])  # merge clusters i and j
             parent.update_d_param(child)  # update parent prior merge probability (pik)
@@ -216,8 +219,17 @@ class BHC:
             self.pmp_table[parent.label, :] = candidate_pmp
             self.pmp_table[:, parent.label] = candidate_pmp
 
+    def prune(self, prune_threshold: float):
+        """
+        prune hierarchy tree at nodes where posterior merge probability is less than `prune_threshold`.
+
+        :param prune_threshold: a float in [0.0, 1.0]
+        """
+        pass
+
 
 if __name__ == "__main__":
+    import numpy as np
     from scipy.stats import multivariate_normal
 
     # generate trial data set
